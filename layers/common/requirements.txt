@@ -1,0 +1,23 @@
+# Common utilities layer requirements
+
+# AWS SDK
+boto3==1.34.0
+botocore==1.34.0
+
+# Redis client
+redis==5.0.1
+
+# JSON Web Tokens
+PyJWT==2.8.0
+
+# HTTP requests
+requests==2.31.0
+
+# Date/time utilities
+python-dateutil==2.8.2
+
+# Utilities
+uuid==1.30
+
+# Validation
+jsonschema==4.20.0

@@ -1,0 +1,27 @@
+# External libraries layer requirements
+
+# Database utilities
+psycopg2-binary==2.9.9
+SQLAlchemy==2.0.23
+
+# Data processing
+pandas==2.0.3
+numpy==1.24.3
+
+# Encryption
+cryptography==41.0.8
+
+# HTTP client
+httpx==0.25.2
+
+# Email utilities
+sendgrid==6.10.0
+
+# Phone number utilities
+phonenumbers==8.13.25
+
+# Image processing (if needed)
+Pillow==10.1.0
+
+# Payment processing
+stripe==7.8.0

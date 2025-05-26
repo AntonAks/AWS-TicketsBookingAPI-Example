@@ -1,0 +1,118 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  # DynamoDB Local for development
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: ticket-booking-dynamodb
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    networks:
+      - ticket-booking-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: ticket-booking-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ticket-booking-network
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # DynamoDB Admin UI
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    container_name: ticket-booking-dynamodb-admin
+    ports:
+      - "8001:8001"
+    environment:
+      - DYNAMO_ENDPOINT=http://dynamodb-local:8000
+    depends_on:
+      - dynamodb-local
+    networks:
+      - ticket-booking-network
+
+  # Redis Commander (Redis UI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ticket-booking-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - ticket-booking-network
+
+  # LocalStack for AWS services simulation
+  localstack:
+    image: localstack/localstack:latest
+    container_name: ticket-booking-localstack
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    environment:
+      - SERVICES=sqs,sns,lambda,apigateway,cloudwatch,logs
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - localstack_data:/tmp/localstack
+    networks:
+      - ticket-booking-network
+
+  # Load Generator
+  load-generator:
+    build:
+      context: ./load-generator
+      dockerfile: Dockerfile
+    container_name: ticket-booking-load-generator
+    volumes:
+      - ./load-generator/config:/app/config
+      - ./load-generator/results:/app/results
+    environment:
+      - API_BASE_URL=${API_BASE_URL:-http://localhost:3000}
+      - ENVIRONMENT=${ENVIRONMENT:-dev}
+      - TEST_TYPE=${TEST_TYPE:-mixed}
+    depends_on:
+      - redis
+      - dynamodb-local
+    networks:
+      - ticket-booking-network
+    profiles:
+      - load-test
+
+  # Database seeder
+  db-seeder:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.seeder
+    container_name: ticket-booking-seeder
+    environment:
+      - DYNAMODB_ENDPOINT=http://dynamodb-local:8000
+      - REDIS_ENDPOINT=redis
+      - ENVIRONMENT=local
+    depends_on:
+      - dynamodb-local
+      - redis
+    networks:
+      - ticket-booking-network
+    profiles:
+      - setup
+
+volumes:
+  redis_data:
+  localstack_data:
+
+networks:
+  ticket-booking-network:
+    driver: bridge

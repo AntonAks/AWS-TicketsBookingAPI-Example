@@ -1,0 +1,7 @@
+# Events Lambda requirements
+
+# Date/time processing
+arrow==1.3.0
+
+# Geolocation (if needed)
+geopy==2.4.1

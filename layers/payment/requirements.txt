@@ -1,0 +1,8 @@
+# Payment Lambda requirements
+
+# Payment processors
+stripe==7.8.0
+paypal-checkout-serversdk==1.0.1
+
+# Decimal handling
+decimal==1.70

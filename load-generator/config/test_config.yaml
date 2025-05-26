@@ -1,0 +1,148 @@
+# load-generator/config/test_config.yaml
+
+# Default configuration for load testing
+
+# API Configuration
+api_base_url: "https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev"
+
+# Load Test Parameters
+concurrent_users: 50
+test_duration_minutes: 10
+requests_per_second: 20
+scenario: "mixed"  # basic_booking, concurrent_booking, stress_test, mixed
+
+# Ramp up/down settings
+ramp_up_seconds: 60
+ramp_down_seconds: 30
+
+# Test Scenarios Configuration
+scenarios:
+  basic_booking:
+    description: "Basic booking flow with realistic user behavior"
+    concurrent_users: 50
+    test_duration_minutes: 10
+    requests_per_second: 10
+    user_behavior:
+      browse_events_probability: 0.3
+      reserve_tickets_probability: 0.4
+      confirm_booking_probability: 0.8
+      cancel_booking_probability: 0.2
+      check_bookings_probability: 0.1
+    think_time:
+      min_seconds: 1
+      max_seconds: 5
+
+  concurrent_booking:
+    description: "High contention test for same tickets"
+    concurrent_users: 100
+    test_duration_minutes: 5
+    requests_per_second: 50
+    focus_single_event: true
+    target_tier: "standard"
+    think_time:
+      min_seconds: 0.1
+      max_seconds: 0.5
+
+  stress_test:
+    description: "Maximum load stress test"
+    concurrent_users: 200
+    test_duration_minutes: 15
+    requests_per_second: 100
+    think_time:
+      min_seconds: 0.1
+      max_seconds: 0.3
+
+  mixed:
+    description: "Realistic mixed workload"
+    concurrent_users: 75
+    test_duration_minutes: 20
+    requests_per_second: 25
+    user_behavior:
+      session_duration_range: [300, 900]  # 5-15 minutes
+      browse_events_probability: 0.4
+      reserve_tickets_probability: 0.3
+      confirm_booking_probability: 0.7
+      cancel_booking_probability: 0.15
+      check_bookings_probability: 0.2
+    think_time:
+      browse_min: 2
+      browse_max: 8
+      booking_decision_min: 10
+      booking_decision_max: 60
+      between_actions_min: 1
+      between_actions_max: 5
+
+# Performance Thresholds
+performance_thresholds:
+  max_avg_response_time_ms: 500
+  max_p95_response_time_ms: 2000
+  max_p99_response_time_ms: 5000
+  min_success_rate_percent: 95
+  max_error_rate_percent: 5
+
+# Test Data Configuration
+test_data:
+  events:
+    # If events don't exist, create test events
+    create_test_events: true
+    test_events:
+      - name: "Load Test Rock Concert"
+        venue: "Test Arena"
+        date_offset_days: 30
+        tiers:
+          standard:
+            price: 50
+            count: 1000
+          premium:
+            price: 100
+            count: 500
+          vip:
+            price: 200
+            count: 100
+      - name: "Load Test Jazz Festival"
+        venue: "Test Theater"
+        date_offset_days: 45
+        tiers:
+          standard:
+            price: 75
+            count: 800
+          premium:
+            price: 150
+            count: 200
+
+  users:
+    # User generation settings
+    email_domain: "loadtest.example.com"
+    password: "LoadTest123!"
+    cleanup_after_test: true
+
+# Monitoring and Reporting
+monitoring:
+  real_time_stats: true
+  stats_interval_seconds: 10
+  save_individual_results: true
+  generate_charts: true
+
+reporting:
+  formats: ["json", "html", "csv"]
+  include_raw_data: true
+  group_by_endpoint: true
+  time_series_resolution_seconds: 5
+
+# Advanced Configuration
+advanced:
+  # HTTP client settings
+  connection_pool_size: 200
+  connection_timeout_seconds: 30
+  request_timeout_seconds: 30
+  max_retries: 2
+  retry_delay_seconds: 1
+
+  # Rate limiting
+  respect_rate_limits: true
+  backoff_strategy: "exponential"
+
+  # Resource monitoring
+  monitor_system_resources: true
+  alert_on_high_memory: true
+  alert_on_high_cpu: true
